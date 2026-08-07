@@ -1,0 +1,16 @@
+ffmpeg.exe
+ffprobe.exe
+yt-dlp.exe
+imgstemp/
+*.m4a
+*.opus
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.webm
