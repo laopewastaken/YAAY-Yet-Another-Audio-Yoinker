@@ -7,7 +7,7 @@ from tkinter import messagebox
 from pathlib import Path
 
 
-# AAY! folder
+# YAAY! folder
 APP_DIR = Path(__file__).resolve().parent
 
 YTDLP = APP_DIR / "yt-dlp.exe"
@@ -55,7 +55,7 @@ def limit_title(text, maximum=30):
 
 def get_filename(title, channel, media_id, extension):
     """
-    Build the final AAY filename.
+    Build the final YAAY filename.
 
     Format:
     Title - Channel - ID.extension
@@ -102,15 +102,15 @@ def check_url():
 
     if not url:
         messagebox.showwarning(
-            "AAY!",
+            "YAAY!",
             "Paste a URL first."
         )
         return
 
     if not YTDLP.exists():
         messagebox.showerror(
-            "AAY!",
-            "yt-dlp.exe was not found in the AAY folder."
+            "YAAY!",
+            "yt-dlp.exe was not found in the YAAY folder."
         )
         return
 
@@ -152,7 +152,7 @@ def check_url():
             error = result.stderr.strip()
 
             messagebox.showerror(
-                "AAY!",
+                "YAAY!",
                 error[-3000:] if error else "Unknown error."
             )
 
@@ -266,8 +266,8 @@ def check_url():
         )
 
         messagebox.showerror(
-            "AAY!",
-            "yt-dlp returned information that AAY! couldn't understand."
+            "YAAY!",
+            "yt-dlp returned information that YAAY! couldn't understand."
         )
 
     except Exception as error:
@@ -277,7 +277,7 @@ def check_url():
         )
 
         messagebox.showerror(
-            "AAY!",
+            "YAAY!",
             str(error)
         )
 
@@ -291,15 +291,15 @@ def download_audio():
 
     if not current_url or not current_info:
         messagebox.showwarning(
-            "AAY!",
+            "YAAY!",
             "Check a URL first."
         )
         return
 
     if not YTDLP.exists():
         messagebox.showerror(
-            "AAY!",
-            "yt-dlp.exe was not found in the AAY folder."
+            "YAAY!",
+            "yt-dlp.exe was not found in the YAAY folder."
         )
         return
 
@@ -353,7 +353,7 @@ def download_audio():
 
         if not candidates:
             messagebox.showerror(
-                "AAY!",
+                "YAAY!",
                 "TikTok did not provide a usable audio format."
             )
 
@@ -377,7 +377,7 @@ def download_audio():
 
         if not format_id:
             messagebox.showerror(
-                "AAY!",
+                "YAAY!",
                 "Could not determine the TikTok format."
             )
 
@@ -388,7 +388,7 @@ def download_audio():
 
         # Temporary video filename.
         temp_template = (
-            f"AAY_temp_{current_id}.%(ext)s"
+            f"YAAY_temp_{current_id}.%(ext)s"
         )
 
         command = [
@@ -427,7 +427,7 @@ def download_audio():
             # Find the temporary downloaded file.
             temp_files = list(
                 APP_DIR.glob(
-                    f"AAY_temp_{current_id}.*"
+                    f"YAAY_temp_{current_id}.*"
                 )
             )
 
@@ -450,13 +450,13 @@ def download_audio():
 
             final_file = APP_DIR / final_name
 
-            # FFmpeg executable bundled with AAY.
+            # FFmpeg executable bundled with YAAY.
             ffmpeg = APP_DIR / "ffmpeg.exe"
 
             if not ffmpeg.exists():
 
                 raise Exception(
-                    "ffmpeg.exe was not found in the AAY folder."
+                    "ffmpeg.exe was not found in the YAAY folder."
                 )
 
             status_label.config(
@@ -521,7 +521,7 @@ def download_audio():
             )
 
             messagebox.showerror(
-                "AAY!",
+                "YAAY!",
                 str(error)
             )
 
@@ -569,7 +569,7 @@ def download_audio():
                 error = result.stderr.strip()
 
                 messagebox.showerror(
-                    "AAY!",
+                    "YAAY!",
                     error[-3000:]
                     if error
                     else "Download failed."
@@ -586,7 +586,7 @@ def download_audio():
             )
 
             messagebox.showerror(
-                "AAY!",
+                "YAAY!",
                 str(error)
             )
 
@@ -606,7 +606,7 @@ def download_audio():
 root = tk.Tk()
 
 root.title(
-    "AAY! — Another Audio Yoinker"
+    "YAAY! — Yet Another Audio Yoinker"
 )
 
 root.geometry(
@@ -636,7 +636,7 @@ title_label.pack(
 
 subtitle_label = tk.Label(
     root,
-    text="Another Audio Yoinker",
+    text="Yet Another Audio Yoinker",
     font=("Segoe UI", 10)
 )
 
