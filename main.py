@@ -17,6 +17,7 @@ current_url = None
 current_title = None
 current_channel = None
 current_id = None
+current_info = None
 
 
 def sanitize_filename(text):
@@ -73,6 +74,7 @@ def check_url():
     global current_title
     global current_channel
     global current_id
+    global current_info
 
     url = url_entry.get().strip()
 
@@ -135,6 +137,7 @@ def check_url():
             return
 
         info = json.loads(result.stdout)
+        current_info = info
 
         # -------------------------------------------------
         # Determine platform
@@ -254,7 +257,9 @@ def check_url():
 
 def download_audio():
 
-    if not current_url:
+    global current_info
+
+    if not current_url or not current_info:
         messagebox.showwarning(
             "AAY!",
             "Check a URL first."
@@ -282,31 +287,190 @@ def download_audio():
 
     root.update()
 
-    command = [
-        str(YTDLP),
+    extractor = (
+        current_info.get("extractor_key")
+        or current_info.get("extractor")
+        or ""
+    ).lower()
 
-        # Prefer audio-only.
-        # Fall back to a format containing audio.
-        "-f",
-        "bestaudio/best",
+    # =====================================================
+    # TIKTOK
+    # =====================================================
 
-        # Temporary filename template.
-        "-o",
-        "%(title)s - %(uploader)s - %(id)s.%(ext)s",
+    if "tiktok" in extractor:
 
-        current_url,
-    ]
+        formats = current_info.get("formats", [])
 
-    try:
+        # Find usable video+audio formats.
+        candidates = []
 
-        result = subprocess.run(
-            command,
-            cwd=APP_DIR,
-            capture_output=True,
-            text=True
+        for fmt in formats:
+
+            if fmt.get("vcodec") in (None, "none"):
+                continue
+
+            if fmt.get("acodec") in (None, "none"):
+                continue
+
+            format_id = fmt.get("format_id", "")
+
+            # Avoid TikTok's special watermarked
+            # "download" format.
+            if format_id == "download":
+                continue
+
+            candidates.append(fmt)
+
+        if not candidates:
+            messagebox.showerror(
+                "AAY!",
+                "TikTok did not provide a usable audio format."
+            )
+
+            check_button.config(state="normal")
+            download_button.config(state="normal")
+
+            return
+
+        # Prefer the highest resolution.
+        def resolution_score(fmt):
+            width = fmt.get("width") or 0
+            height = fmt.get("height") or 0
+            return width * height
+
+        selected = max(
+            candidates,
+            key=resolution_score
         )
 
-        if result.returncode == 0:
+        format_id = selected.get("format_id")
+
+        if not format_id:
+            messagebox.showerror(
+                "AAY!",
+                "Could not determine the TikTok format."
+            )
+
+            check_button.config(state="normal")
+            download_button.config(state="normal")
+
+            return
+
+        # Temporary video filename.
+        temp_template = (
+            f"AAY_temp_{current_id}.%(ext)s"
+        )
+
+        command = [
+            str(YTDLP),
+
+            "-f",
+            format_id,
+
+            "-o",
+            temp_template,
+
+            current_url,
+        ]
+
+        try:
+
+            result = subprocess.run(
+                command,
+                cwd=APP_DIR,
+                capture_output=True,
+                text=True
+            )
+
+            if result.returncode != 0:
+
+                error = result.stderr.strip()
+
+                raise Exception(
+                    error[-3000:]
+                    if error
+                    else "TikTok download failed."
+                )
+
+            # Find the temporary downloaded file.
+            temp_files = list(
+                APP_DIR.glob(
+                    f"AAY_temp_{current_id}.*"
+                )
+            )
+
+            if not temp_files:
+
+                raise Exception(
+                    "TikTok downloaded successfully, "
+                    "but the temporary file could not be found."
+                )
+
+            temp_file = temp_files[0]
+
+            # Final filename.
+            final_name = get_filename(
+                current_title,
+                current_channel,
+                current_id,
+                "m4a"
+            )
+
+            final_file = APP_DIR / final_name
+
+            # FFmpeg executable bundled with AAY.
+            ffmpeg = APP_DIR / "ffmpeg.exe"
+
+            if not ffmpeg.exists():
+
+                raise Exception(
+                    "ffmpeg.exe was not found in the AAY folder."
+                )
+
+            status_label.config(
+                text="Extracting audio..."
+            )
+
+            root.update()
+
+            ffmpeg_command = [
+                str(ffmpeg),
+
+                "-y",
+
+                "-i",
+                str(temp_file),
+
+                "-vn",
+
+                "-c:a",
+                "copy",
+
+                str(final_file)
+            ]
+
+            ffmpeg_result = subprocess.run(
+                ffmpeg_command,
+                cwd=APP_DIR,
+                capture_output=True,
+                text=True
+            )
+
+            if ffmpeg_result.returncode != 0:
+
+                error = ffmpeg_result.stderr.strip()
+
+                raise Exception(
+                    error[-3000:]
+                    if error
+                    else "FFmpeg failed to extract the audio."
+                )
+
+            # Delete temporary TikTok video.
+            try:
+                temp_file.unlink()
+            except Exception:
+                pass
 
             status_label.config(
                 text="✓ Download complete!"
@@ -314,43 +478,91 @@ def download_audio():
 
             messagebox.showinfo(
                 "AAY!",
-                f"Downloaded:\n{current_title}"
+                f"Downloaded:\n{final_name}"
             )
 
-        else:
+        except Exception as error:
 
             status_label.config(
                 text="Download failed."
             )
 
-            error = result.stderr.strip()
+            messagebox.showerror(
+                "AAY!",
+                str(error)
+            )
+
+    # =====================================================
+    # YOUTUBE / INSTAGRAM / EVERYTHING ELSE
+    # =====================================================
+
+    else:
+
+        command = [
+            str(YTDLP),
+
+            "-f",
+            "bestaudio/best",
+
+            "-o",
+            "%(title)s - %(uploader)s - %(id)s.%(ext)s",
+
+            current_url,
+        ]
+
+        try:
+
+            result = subprocess.run(
+                command,
+                cwd=APP_DIR,
+                capture_output=True,
+                text=True
+            )
+
+            if result.returncode == 0:
+
+                status_label.config(
+                    text="✓ Download complete!"
+                )
+
+                messagebox.showinfo(
+                    "AAY!",
+                    f"Downloaded:\n{current_title}"
+                )
+
+            else:
+
+                error = result.stderr.strip()
+
+                messagebox.showerror(
+                    "AAY!",
+                    error[-3000:]
+                    if error
+                    else "Download failed."
+                )
+
+                status_label.config(
+                    text="Download failed."
+                )
+
+        except Exception as error:
+
+            status_label.config(
+                text="Something went wrong."
+            )
 
             messagebox.showerror(
                 "AAY!",
-                error[-3000:] if error else "Unknown error."
+                str(error)
             )
 
-    except Exception as error:
+    check_button.config(
+        state="normal"
+    )
 
-        status_label.config(
-            text="Something went wrong."
-        )
-
-        messagebox.showerror(
-            "AAY!",
-            str(error)
-        )
-
-    finally:
-
-        check_button.config(
-            state="normal"
-        )
-
-        if current_url:
-            download_button.config(
-                state="normal"
-            )
+    download_button.config(
+        state="normal"
+    )
 
 
 # =========================================================
