@@ -2,6 +2,7 @@ ffmpeg.exe
 ffprobe.exe
 yt-dlp.exe
 imgstemp/
+__pycache__/
 *.m4a
 *.opus
 *.mp3
