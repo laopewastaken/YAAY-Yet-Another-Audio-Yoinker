@@ -285,11 +285,23 @@ def download_audio():
     command = [
         str(YTDLP),
 
-        # Best available audio-only stream.
+        # Prefer audio-only.
+        # Fall back to the best format containing audio.
         "-f",
-        "bestaudio",
+        "bestaudio/best",
 
-        # Our filename format.
+        # Extract audio from combined formats.
+        "-x",
+
+        # Keep AAC audio in an M4A container.
+        "--audio-format",
+        "m4a",
+
+        # Don't re-encode the audio if possible.
+        "--postprocessor-args",
+        "ExtractAudio:-c:a copy",
+
+        # Temporary filename.
         "-o",
         "%(title)s - %(uploader)s - %(id)s.%(ext)s",
 
@@ -297,6 +309,7 @@ def download_audio():
     ]
 
     try:
+
         result = subprocess.run(
             command,
             cwd=APP_DIR,
