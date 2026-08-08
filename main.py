@@ -286,22 +286,11 @@ def download_audio():
         str(YTDLP),
 
         # Prefer audio-only.
-        # Fall back to the best format containing audio.
+        # Fall back to a format containing audio.
         "-f",
         "bestaudio/best",
 
-        # Extract audio from combined formats.
-        "-x",
-
-        # Keep AAC audio in an M4A container.
-        "--audio-format",
-        "m4a",
-
-        # Don't re-encode the audio if possible.
-        "--postprocessor-args",
-        "ExtractAudio:-c:a copy",
-
-        # Temporary filename.
+        # Temporary filename template.
         "-o",
         "%(title)s - %(uploader)s - %(id)s.%(ext)s",
 
