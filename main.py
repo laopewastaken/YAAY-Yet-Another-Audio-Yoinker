@@ -2,6 +2,7 @@ import json
 import re
 import subprocess
 import tkinter as tk
+import winsound
 from tkinter import messagebox
 from pathlib import Path
 
@@ -67,6 +68,27 @@ def get_filename(title, channel, media_id, extension):
     title = limit_title(title)
 
     return f"{title} - {channel} - {media_id}.{extension}"
+
+
+def display_url(url, maximum=65):
+    """
+    Create a shortened visual representation of the URL.
+    The actual URL is kept separately in current_url.
+    """
+
+    if len(url) <= maximum:
+        return url
+
+    return url[:maximum] + "..."
+
+
+def reset_url_entry():
+    """
+    Clear the URL box and make it editable again.
+    """
+
+    url_entry.config(state="normal")
+    url_entry.delete(0, tk.END)
 
 
 def check_url():
@@ -217,11 +239,17 @@ def check_url():
 
         filename_value.config(text=filename)
 
-        # Remember information for download.
         current_url = url
         current_title = title
         current_channel = channel
         current_id = media_id
+
+        # Show a shortened URL to the user while keeping
+        # the complete original URL internally.
+        url_entry.config(state="normal")
+        url_entry.delete(0, tk.END)
+        url_entry.insert(0, display_url(url))
+        url_entry.config(state="disabled")
 
         status_label.config(
             text="✓ Ready to download"
@@ -232,6 +260,7 @@ def check_url():
         )
 
     except json.JSONDecodeError:
+        url_entry.config(state="normal")
         status_label.config(
             text="Invalid response from yt-dlp."
         )
@@ -242,6 +271,7 @@ def check_url():
         )
 
     except Exception as error:
+        url_entry.config(state="normal")
         status_label.config(
             text="Something went wrong."
         )
@@ -384,6 +414,8 @@ def download_audio():
 
             if result.returncode != 0:
 
+                url_entry.config(state="normal")
+
                 error = result.stderr.strip()
 
                 raise Exception(
@@ -476,13 +508,14 @@ def download_audio():
                 text="✓ Download complete!"
             )
 
-            messagebox.showinfo(
-                "AAY!",
-                f"Downloaded:\n{final_name}"
+            winsound.MessageBeep(
+                winsound.MB_OK
             )
 
-        except Exception as error:
+            reset_url_entry()
 
+        except Exception as error:
+            url_entry.config(state="normal")
             status_label.config(
                 text="Download failed."
             )
@@ -525,10 +558,11 @@ def download_audio():
                     text="✓ Download complete!"
                 )
 
-                messagebox.showinfo(
-                    "AAY!",
-                    f"Downloaded:\n{current_title}"
+                winsound.MessageBeep(
+                    winsound.MB_OK
                 )
+
+                reset_url_entry()
 
             else:
 
@@ -546,7 +580,7 @@ def download_audio():
                 )
 
         except Exception as error:
-
+            url_entry.config(state="normal")
             status_label.config(
                 text="Something went wrong."
             )
