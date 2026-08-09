@@ -18,6 +18,7 @@ class YAAYApp:
         self._build_url_section()
         self._build_information_section()
         self._build_download_section()
+        self._build_status_bar()
 
     # ---------------------------------------------------------
     # Window
@@ -28,7 +29,7 @@ class YAAYApp:
             "YAAY! — Yet Another Audio Yoinker"
         )
 
-        self.root.geometry("650x400")
+        self.root.geometry("650x420")
         self.root.resizable(False, False)
 
     # ---------------------------------------------------------
@@ -72,9 +73,12 @@ class YAAYApp:
 
         self.url_entry.pack()
 
-        # Changing the URL invalidates the metadata from the previous CHECK.
-        self.url_entry.bind("<KeyRelease>", self._url_changed)
-        self.url_entry.bind("<<Paste>>", self._url_changed)
+        # If the user changes the URL after checking it,
+        # invalidate the previously checked metadata.
+        self.url_entry.bind(
+            "<KeyRelease>",
+            self._url_changed,
+        )
 
         self.check_button = tk.Button(
             self.root,
@@ -178,27 +182,39 @@ class YAAYApp:
 
         self.download_button.pack(pady=15)
 
-        self.status_label = tk.Label(
+    # ---------------------------------------------------------
+    # Status bar
+    # ---------------------------------------------------------
+
+    def _build_status_bar(self):
+        self.status_bar = tk.Label(
             self.root,
-            text="Ready.",
-            font=("Segoe UI", 9),
+            text="Ready",
+            anchor="w",
+            relief="sunken",
+            bd=1,
+            padx=8,
         )
 
-        self.status_label.pack()
+        self.status_bar.pack(
+            side="bottom",
+            fill="x",
+        )
+
+    def _set_status(self, text):
+        self.status_bar.config(text=text)
 
     # ---------------------------------------------------------
-    # URL state
+    # URL changes
     # ---------------------------------------------------------
 
     def _url_changed(self, event=None):
-        """Invalidate checked metadata when the user changes the URL."""
+        current_text = self.url_entry.get().strip()
 
-        if not self.current_url:
-            return
-
-        entered_url = self.url_entry.get().strip()
-
-        if entered_url != self.current_url:
+        if (
+            self.current_url is not None
+            and current_text != self.current_url
+        ):
             self.current_url = None
             self.current_metadata = None
 
@@ -206,13 +222,13 @@ class YAAYApp:
             self.channel_value.config(text="—")
             self.filename_value.config(text="—")
 
-            self.download_button.config(state="disabled")
-            self.status_label.config(
-                text="URL changed — click CHECK"
+            self.download_button.config(
+                state="disabled"
             )
 
-    def _clear_url_entry(self):
-        self.url_entry.delete(0, tk.END)
+            self._set_status(
+                "URL changed — click CHECK"
+            )
 
     # ---------------------------------------------------------
     # Check
@@ -228,17 +244,24 @@ class YAAYApp:
             )
             return
 
-        # A new CHECK always replaces any previous checked URL.
-        self.current_url = None
-        self.current_metadata = None
+        self.status_bar.config(
+            text="Checking..."
+        )
 
-        self.status_label.config(text="Checking...")
-        self.check_button.config(state="disabled")
-        self.download_button.config(state="disabled")
+        self.check_button.config(
+            state="disabled"
+        )
+
+        self.download_button.config(
+            state="disabled"
+        )
 
         self.title_value.config(text="—")
         self.channel_value.config(text="—")
         self.filename_value.config(text="—")
+
+        self.current_url = None
+        self.current_metadata = None
 
         self.root.update()
 
@@ -260,8 +283,8 @@ class YAAYApp:
                 text=metadata["filename"]
             )
 
-            self.status_label.config(
-                text="✓ Ready to download"
+            self._set_status(
+                "✓ Ready to download"
             )
 
             self.download_button.config(
@@ -269,10 +292,11 @@ class YAAYApp:
             )
 
         except Exception as error:
-            self.url_entry.config(state="normal")
+            self.current_url = None
+            self.current_metadata = None
 
-            self.status_label.config(
-                text="Could not retrieve information."
+            self._set_status(
+                "Could not retrieve information."
             )
 
             messagebox.showerror(
@@ -281,7 +305,9 @@ class YAAYApp:
             )
 
         finally:
-            self.check_button.config(state="normal")
+            self.check_button.config(
+                state="normal"
+            )
 
     # ---------------------------------------------------------
     # Download
@@ -295,8 +321,8 @@ class YAAYApp:
             )
             return
 
-        self.status_label.config(
-            text="Downloading..."
+        self._set_status(
+            "Downloading..."
         )
 
         self.check_button.config(
@@ -310,39 +336,32 @@ class YAAYApp:
         self.root.update()
 
         try:
-            extractor = self.current_metadata["extractor"]
-
-            if "tiktok" in extractor:
-                self.status_label.config(
-                    text="Downloading..."
-                )
-                self.root.update()
-
-            final_file = download_audio(
+            download_audio(
                 self.current_url,
                 self.current_metadata,
             )
 
-            # TikTok has an explicit extraction stage.
-            if "tiktok" in extractor:
-                self.status_label.config(
-                    text="✓ Download complete!"
-                )
-            else:
-                self.status_label.config(
-                    text="✓ Download complete!"
-                )
+            self._set_status(
+                "✓ Download complete!"
+            )
 
             play_success_sound()
 
-            self._clear_url_entry()
+            self.url_entry.delete(
+                0,
+                tk.END,
+            )
 
             self.current_url = None
             self.current_metadata = None
 
+            self.title_value.config(text="—")
+            self.channel_value.config(text="—")
+            self.filename_value.config(text="—")
+
         except Exception as error:
-            self.status_label.config(
-                text="Download failed."
+            self._set_status(
+                "Download failed."
             )
 
             messagebox.showerror(
@@ -356,9 +375,11 @@ class YAAYApp:
             )
 
             self.download_button.config(
-                state="disabled"
-                if not self.current_url
-                else "normal"
+                state=(
+                    "normal"
+                    if self.current_url
+                    else "disabled"
+                )
             )
 
 
