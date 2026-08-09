@@ -1,7 +1,14 @@
+
 import subprocess
+from pathlib import Path
 
 from filenames import get_filename
-from utils import APP_DIR, DOWNLOADS_DIR, TEMP_DOWNLOAD_DIR, FFMPEG, YTDLP
+from utils import (
+    APP_DIR,
+    TEMP_DOWNLOAD_DIR,
+    FFMPEG,
+    YTDLP,
+)
 
 
 def _run(command):
@@ -17,7 +24,7 @@ def _run(command):
     )
 
 
-def _download_tiktok(current_url, metadata):
+def _download_tiktok(current_url, metadata, output_folder):
     """
     TikTok path:
     download a usable video+audio format temporarily,
@@ -81,8 +88,15 @@ def _download_tiktok(current_url, metadata):
             "ffmpeg.exe was not found in the YAAY dependencies folder."
         )
 
-    TEMP_DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    TEMP_DOWNLOAD_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    output_folder.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     temp_template = (
         TEMP_DOWNLOAD_DIR
@@ -102,6 +116,7 @@ def _download_tiktok(current_url, metadata):
 
     if result.returncode != 0:
         error = result.stderr.strip()
+
         raise RuntimeError(
             error[-3000:]
             if error
@@ -129,7 +144,7 @@ def _download_tiktok(current_url, metadata):
         "m4a",
     )
 
-    final_file = DOWNLOADS_DIR / final_name
+    final_file = output_folder / final_name
 
     ffmpeg_command = [
         str(FFMPEG),
@@ -146,6 +161,7 @@ def _download_tiktok(current_url, metadata):
 
     if ffmpeg_result.returncode != 0:
         error = ffmpeg_result.stderr.strip()
+
         raise RuntimeError(
             error[-3000:]
             if error
@@ -160,7 +176,11 @@ def _download_tiktok(current_url, metadata):
     return final_file
 
 
-def _download_standard(current_url, metadata):
+def _download_standard(
+    current_url,
+    metadata,
+    output_folder,
+):
     """
     YouTube / Instagram / other standard path.
     """
@@ -170,7 +190,10 @@ def _download_standard(current_url, metadata):
             "yt-dlp.exe was not found in the YAAY dependencies folder."
         )
 
-    DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    output_folder.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     command = [
         str(YTDLP),
@@ -178,7 +201,7 @@ def _download_standard(current_url, metadata):
         "bestaudio/best",
         "-o",
         str(
-            DOWNLOADS_DIR
+            output_folder
             / "%(title)s - %(uploader)s - %(id)s.%(ext)s"
         ),
         current_url,
@@ -188,6 +211,7 @@ def _download_standard(current_url, metadata):
 
     if result.returncode != 0:
         error = result.stderr.strip()
+
         raise RuntimeError(
             error[-3000:]
             if error
@@ -197,7 +221,11 @@ def _download_standard(current_url, metadata):
     return None
 
 
-def download_audio(current_url, metadata):
+def download_audio(
+    current_url,
+    metadata,
+    output_folder,
+):
     """
     Download audio using the platform-specific path.
 
@@ -205,9 +233,19 @@ def download_audio(current_url, metadata):
     (currently TikTok), otherwise None for yt-dlp-managed output.
     """
 
+    output_folder = Path(output_folder)
+
     extractor = metadata["extractor"]
 
     if "tiktok" in extractor:
-        return _download_tiktok(current_url, metadata)
+        return _download_tiktok(
+            current_url,
+            metadata,
+            output_folder,
+        )
 
-    return _download_standard(current_url, metadata)
+    return _download_standard(
+        current_url,
+        metadata,
+        output_folder,
+    )

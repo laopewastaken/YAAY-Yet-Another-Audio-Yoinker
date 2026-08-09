@@ -444,6 +444,7 @@ class YAAYApp:
             download_audio(
                 self.current_url,
                 self.current_metadata,
+                Path(self.save_path_entry.get().strip())
             )
 
             self._set_status(
