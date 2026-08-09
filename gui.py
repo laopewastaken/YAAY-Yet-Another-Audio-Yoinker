@@ -1,9 +1,10 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 
 from downloader import download_audio
 from metadata import get_metadata
 from utils import ensure_directories, play_success_sound
+from pathlib import Path
 
 
 class YAAYApp:
@@ -17,6 +18,7 @@ class YAAYApp:
         self._build_header()
         self._build_url_section()
         self._build_information_section()
+        self._build_save_section()
         self._build_download_section()
         self._build_status_bar()
 
@@ -29,7 +31,7 @@ class YAAYApp:
             "YAAY! — Yet Another Audio Yoinker"
         )
 
-        self.root.geometry("650x420")
+        self.root.geometry("700x470")
         self.root.resizable(False, False)
 
     # ---------------------------------------------------------
@@ -68,13 +70,11 @@ class YAAYApp:
 
         self.url_entry = tk.Entry(
             self.root,
-            width=75,
+            width=80,
         )
 
         self.url_entry.pack()
 
-        # If the user changes the URL after checking it,
-        # invalidate the previously checked metadata.
         self.url_entry.bind(
             "<KeyRelease>",
             self._url_changed,
@@ -103,7 +103,12 @@ class YAAYApp:
             font=("Segoe UI", 9, "bold"),
             anchor="e",
             width=12,
-        ).grid(row=0, column=0, padx=5, pady=3)
+        ).grid(
+            row=0,
+            column=0,
+            padx=5,
+            pady=3,
+        )
 
         self.title_value = tk.Label(
             info_frame,
@@ -126,7 +131,12 @@ class YAAYApp:
             font=("Segoe UI", 9, "bold"),
             anchor="e",
             width=12,
-        ).grid(row=1, column=0, padx=5, pady=3)
+        ).grid(
+            row=1,
+            column=0,
+            padx=5,
+            pady=3,
+        )
 
         self.channel_value = tk.Label(
             info_frame,
@@ -149,7 +159,12 @@ class YAAYApp:
             font=("Segoe UI", 9, "bold"),
             anchor="e",
             width=12,
-        ).grid(row=2, column=0, padx=5, pady=3)
+        ).grid(
+            row=2,
+            column=0,
+            padx=5,
+            pady=3,
+        )
 
         self.filename_value = tk.Label(
             info_frame,
@@ -167,6 +182,80 @@ class YAAYApp:
         )
 
     # ---------------------------------------------------------
+    # Save To
+    # ---------------------------------------------------------
+
+    def _build_save_section(self):
+        save_frame = tk.Frame(self.root)
+        save_frame.pack(
+            pady=(12, 5),
+        )
+
+        tk.Label(
+            save_frame,
+            text="Save to:",
+            font=("Segoe UI", 9, "bold"),
+            anchor="e",
+            width=12,
+        ).grid(
+            row=0,
+            column=0,
+            padx=5,
+        )
+
+        self.save_path_entry = tk.Entry(
+            save_frame,
+            width=55,
+        )
+
+        self.save_path_entry.grid(
+            row=0,
+            column=1,
+            padx=5,
+        )
+
+        ensure_directories()
+
+        default_download_folder = (
+            Path(__file__).resolve().parent
+            / "downloads"
+        )
+
+        self.save_path_entry.insert(
+            0,
+            str(default_download_folder),
+        )
+
+        self.browse_button = tk.Button(
+            save_frame,
+            text="Browse...",
+            command=self.browse_save_folder,
+            width=10,
+        )
+
+        self.browse_button.grid(
+            row=0,
+            column=2,
+            padx=5,
+        )
+
+    def browse_save_folder(self):
+        selected_folder = filedialog.askdirectory(
+            title="Select download folder",
+        )
+
+        if selected_folder:
+            self.save_path_entry.delete(
+                0,
+                tk.END,
+            )
+
+            self.save_path_entry.insert(
+                0,
+                selected_folder,
+            )
+
+    # ---------------------------------------------------------
     # Download
     # ---------------------------------------------------------
 
@@ -180,10 +269,12 @@ class YAAYApp:
             state="disabled",
         )
 
-        self.download_button.pack(pady=15)
+        self.download_button.pack(
+            pady=15,
+        )
 
     # ---------------------------------------------------------
-    # Status bar
+    # Status Bar
     # ---------------------------------------------------------
 
     def _build_status_bar(self):
@@ -202,10 +293,12 @@ class YAAYApp:
         )
 
     def _set_status(self, text):
-        self.status_bar.config(text=text)
+        self.status_bar.config(
+            text=text,
+        )
 
     # ---------------------------------------------------------
-    # URL changes
+    # URL Changes
     # ---------------------------------------------------------
 
     def _url_changed(self, event=None):
@@ -223,7 +316,7 @@ class YAAYApp:
             self.filename_value.config(text="—")
 
             self.download_button.config(
-                state="disabled"
+                state="disabled",
             )
 
             self._set_status(
@@ -244,16 +337,16 @@ class YAAYApp:
             )
             return
 
-        self.status_bar.config(
-            text="Checking..."
+        self._set_status(
+            "Checking..."
         )
 
         self.check_button.config(
-            state="disabled"
+            state="disabled",
         )
 
         self.download_button.config(
-            state="disabled"
+            state="disabled",
         )
 
         self.title_value.config(text="—")
@@ -288,7 +381,7 @@ class YAAYApp:
             )
 
             self.download_button.config(
-                state="normal"
+                state="normal",
             )
 
         except Exception as error:
@@ -306,7 +399,7 @@ class YAAYApp:
 
         finally:
             self.check_button.config(
-                state="normal"
+                state="normal",
             )
 
     # ---------------------------------------------------------
@@ -314,10 +407,22 @@ class YAAYApp:
     # ---------------------------------------------------------
 
     def download(self):
-        if not self.current_url or not self.current_metadata:
+        if (
+            not self.current_url
+            or not self.current_metadata
+        ):
             messagebox.showwarning(
                 "YAAY!",
                 "Check a URL first.",
+            )
+            return
+
+        save_path = self.save_path_entry.get().strip()
+
+        if not save_path:
+            messagebox.showwarning(
+                "YAAY!",
+                "Select a download folder first.",
             )
             return
 
@@ -326,11 +431,11 @@ class YAAYApp:
         )
 
         self.check_button.config(
-            state="disabled"
+            state="disabled",
         )
 
         self.download_button.config(
-            state="disabled"
+            state="disabled",
         )
 
         self.root.update()
@@ -371,7 +476,7 @@ class YAAYApp:
 
         finally:
             self.check_button.config(
-                state="normal"
+                state="normal",
             )
 
             self.download_button.config(
@@ -387,5 +492,7 @@ def start_app():
     ensure_directories()
 
     root = tk.Tk()
+
     YAAYApp(root)
+
     root.mainloop()
