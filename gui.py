@@ -1,13 +1,33 @@
+
 import tkinter as tk
 from tkinter import messagebox, filedialog
+from pathlib import Path
 
 from downloader import download_audio
 from metadata import get_metadata
 from utils import ensure_directories, play_success_sound
-from pathlib import Path
+
+
+# =========================================================
+# YAAY TERMINAL THEME
+# =========================================================
+
+BG = "#050505"
+PANEL = "#0a0a0a"
+AMBER = "#ff9d00"
+AMBER_DIM = "#a76500"
+AMBER_DARK = "#3d2600"
+BORDER = "#8f5900"
+DISABLED = "#543600"
+
+FONT = ("Consolas", 10)
+FONT_BOLD = ("Consolas", 10, "bold")
+FONT_TITLE = ("Consolas", 18, "bold")
+FONT_SMALL = ("Consolas", 9)
 
 
 class YAAYApp:
+
     def __init__(self, root):
         self.root = root
 
@@ -22,58 +42,118 @@ class YAAYApp:
         self._build_download_section()
         self._build_status_bar()
 
-    # ---------------------------------------------------------
+    # =====================================================
     # Window
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_window(self):
         self.root.title(
-            "YAAY! — Yet Another Audio Yoinker"
+            "YAAY! // Yet Another Audio Yoinker"
         )
 
-        self.root.geometry("700x470")
+        self.root.geometry("760x560")
         self.root.resizable(False, False)
 
-    # ---------------------------------------------------------
+        self.root.configure(
+            bg=BG
+        )
+
+    # =====================================================
     # Header
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_header(self):
-        title_label = tk.Label(
+
+        header = tk.Frame(
             self.root,
-            text="YAAY!",
-            font=("Segoe UI", 26, "bold"),
+            bg=BG,
         )
 
-        title_label.pack(pady=(20, 0))
-
-        subtitle_label = tk.Label(
-            self.root,
-            text="Yet Another Audio Yoinker",
-            font=("Segoe UI", 10),
+        header.pack(
+            fill="x",
+            padx=18,
+            pady=(15, 0),
         )
 
-        subtitle_label.pack()
+        tk.Label(
+            header,
+            text="╔══════════════════════════════════════════════════════════════════════╗",
+            font=FONT_SMALL,
+            fg=AMBER_DIM,
+            bg=BG,
+        ).pack()
 
-    # ---------------------------------------------------------
+        tk.Label(
+            header,
+            text="║  YAAY! // YET ANOTHER AUDIO YOINKER                               ║",
+            font=FONT_BOLD,
+            fg=AMBER,
+            bg=BG,
+        ).pack()
+
+        tk.Label(
+            header,
+            text="║  AUDIO EXTRACTION TERMINAL                                        ║",
+            font=FONT_SMALL,
+            fg=AMBER_DIM,
+            bg=BG,
+        ).pack()
+
+        tk.Label(
+            header,
+            text="╚══════════════════════════════════════════════════════════════════════╝",
+            font=FONT_SMALL,
+            fg=AMBER_DIM,
+            bg=BG,
+        ).pack()
+
+    # =====================================================
     # URL
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_url_section(self):
-        url_label = tk.Label(
+
+        frame = tk.Frame(
             self.root,
-            text="URL",
-            font=("Segoe UI", 10, "bold"),
+            bg=BG,
         )
 
-        url_label.pack(pady=(20, 3))
+        frame.pack(
+            fill="x",
+            padx=28,
+            pady=(18, 0),
+        )
+
+        tk.Label(
+            frame,
+            text="[ SOURCE URL ]",
+            font=FONT_BOLD,
+            fg=AMBER,
+            bg=BG,
+            anchor="w",
+        ).pack(
+            anchor="w",
+        )
 
         self.url_entry = tk.Entry(
-            self.root,
-            width=80,
+            frame,
+            font=FONT,
+            fg=AMBER,
+            bg=PANEL,
+            insertbackground=AMBER,
+            selectforeground=BG,
+            selectbackground=AMBER,
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            highlightcolor=AMBER,
         )
 
-        self.url_entry.pack()
+        self.url_entry.pack(
+            fill="x",
+            pady=(5, 8),
+            ipady=6,
+        )
 
         self.url_entry.bind(
             "<KeyRelease>",
@@ -81,137 +161,204 @@ class YAAYApp:
         )
 
         self.check_button = tk.Button(
-            self.root,
-            text="CHECK",
+            frame,
+            text="[ CHECK SOURCE ]",
             command=self.check_url,
-            width=15,
+            font=FONT_BOLD,
+            fg=AMBER,
+            bg=BG,
+            activeforeground=BG,
+            activebackground=AMBER,
+            relief="flat",
+            bd=0,
+            padx=12,
+            pady=5,
+            cursor="hand2",
         )
 
-        self.check_button.pack(pady=10)
+        self.check_button.pack(
+            anchor="e",
+        )
 
-    # ---------------------------------------------------------
+    # =====================================================
     # Information
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_information_section(self):
-        info_frame = tk.Frame(self.root)
-        info_frame.pack(pady=5)
 
-        tk.Label(
-            info_frame,
-            text="Title:",
-            font=("Segoe UI", 9, "bold"),
-            anchor="e",
-            width=12,
-        ).grid(
-            row=0,
-            column=0,
-            padx=5,
-            pady=3,
+        outer = tk.Frame(
+            self.root,
+            bg=BG,
         )
 
-        self.title_value = tk.Label(
-            info_frame,
-            text="—",
-            font=("Segoe UI", 9),
-            anchor="w",
-            width=65,
-        )
-
-        self.title_value.grid(
-            row=0,
-            column=1,
-            padx=5,
-            pady=3,
+        outer.pack(
+            fill="x",
+            padx=28,
+            pady=(15, 0),
         )
 
         tk.Label(
-            info_frame,
-            text="Channel:",
-            font=("Segoe UI", 9, "bold"),
-            anchor="e",
-            width=12,
-        ).grid(
-            row=1,
-            column=0,
-            padx=5,
-            pady=3,
-        )
-
-        self.channel_value = tk.Label(
-            info_frame,
-            text="—",
-            font=("Segoe UI", 9),
+            outer,
+            text="┌─ SOURCE INFORMATION ───────────────────────────────────────────────┐",
+            font=FONT_SMALL,
+            fg=AMBER_DIM,
+            bg=BG,
             anchor="w",
-            width=65,
+        ).pack(
+            fill="x",
         )
 
-        self.channel_value.grid(
-            row=1,
-            column=1,
-            padx=5,
-            pady=3,
+        info_frame = tk.Frame(
+            outer,
+            bg=PANEL,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+        )
+
+        info_frame.pack(
+            fill="x",
+        )
+
+        self._create_info_row(
+            info_frame,
+            "TITLE",
+            0,
+        )
+
+        self._create_info_row(
+            info_frame,
+            "CHANNEL",
+            1,
+        )
+
+        self._create_info_row(
+            info_frame,
+            "OUTPUT",
+            2,
         )
 
         tk.Label(
-            info_frame,
-            text="Filename:",
-            font=("Segoe UI", 9, "bold"),
-            anchor="e",
+            outer,
+            text="└────────────────────────────────────────────────────────────────────┘",
+            font=FONT_SMALL,
+            fg=AMBER_DIM,
+            bg=BG,
+            anchor="w",
+        ).pack(
+            fill="x",
+        )
+
+    def _create_info_row(
+        self,
+        parent,
+        label,
+        row,
+    ):
+
+        tk.Label(
+            parent,
+            text=f" {label:<8}:",
+            font=FONT_BOLD,
+            fg=AMBER_DIM,
+            bg=PANEL,
+            anchor="w",
             width=12,
         ).grid(
-            row=2,
+            row=row,
             column=0,
-            padx=5,
-            pady=3,
+            sticky="w",
+            padx=(5, 0),
+            pady=5,
         )
 
-        self.filename_value = tk.Label(
-            info_frame,
+        value = tk.Label(
+            parent,
             text="—",
-            font=("Segoe UI", 9),
+            font=FONT,
+            fg=AMBER,
+            bg=PANEL,
             anchor="w",
-            width=65,
         )
 
-        self.filename_value.grid(
-            row=2,
+        value.grid(
+            row=row,
             column=1,
+            sticky="ew",
             padx=5,
-            pady=3,
+            pady=5,
         )
 
-    # ---------------------------------------------------------
+        parent.grid_columnconfigure(
+            1,
+            weight=1,
+        )
+
+        if label == "TITLE":
+            self.title_value = value
+
+        elif label == "CHANNEL":
+            self.channel_value = value
+
+        elif label == "OUTPUT":
+            self.filename_value = value
+
+    # =====================================================
     # Save To
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_save_section(self):
-        save_frame = tk.Frame(self.root)
-        save_frame.pack(
-            pady=(12, 5),
+
+        frame = tk.Frame(
+            self.root,
+            bg=BG,
+        )
+
+        frame.pack(
+            fill="x",
+            padx=28,
+            pady=(15, 0),
         )
 
         tk.Label(
-            save_frame,
-            text="Save to:",
-            font=("Segoe UI", 9, "bold"),
-            anchor="e",
-            width=12,
-        ).grid(
-            row=0,
-            column=0,
-            padx=5,
+            frame,
+            text="[ SAVE TO ]",
+            font=FONT_BOLD,
+            fg=AMBER,
+            bg=BG,
+            anchor="w",
+        ).pack(
+            anchor="w",
+        )
+
+        path_frame = tk.Frame(
+            frame,
+            bg=BG,
+        )
+
+        path_frame.pack(
+            fill="x",
+            pady=(5, 0),
         )
 
         self.save_path_entry = tk.Entry(
-            save_frame,
-            width=55,
+            path_frame,
+            font=FONT_SMALL,
+            fg=AMBER,
+            bg=PANEL,
+            insertbackground=AMBER,
+            selectforeground=BG,
+            selectbackground=AMBER,
+            relief="flat",
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            highlightcolor=AMBER,
         )
 
-        self.save_path_entry.grid(
-            row=0,
-            column=1,
-            padx=5,
+        self.save_path_entry.pack(
+            side="left",
+            fill="x",
+            expand=True,
+            ipady=6,
         )
 
         ensure_directories()
@@ -227,24 +374,34 @@ class YAAYApp:
         )
 
         self.browse_button = tk.Button(
-            save_frame,
-            text="Browse...",
+            path_frame,
+            text="[ BROWSE ]",
             command=self.browse_save_folder,
-            width=10,
+            font=FONT_BOLD,
+            fg=AMBER,
+            bg=BG,
+            activeforeground=BG,
+            activebackground=AMBER,
+            relief="flat",
+            bd=0,
+            padx=10,
+            pady=4,
+            cursor="hand2",
         )
 
-        self.browse_button.grid(
-            row=0,
-            column=2,
-            padx=5,
+        self.browse_button.pack(
+            side="left",
+            padx=(8, 0),
         )
 
     def browse_save_folder(self):
+
         selected_folder = filedialog.askdirectory(
-            title="Select download folder",
+            title="Select YAAY download folder",
         )
 
         if selected_folder:
+
             self.save_path_entry.delete(
                 0,
                 tk.END,
@@ -255,65 +412,110 @@ class YAAYApp:
                 selected_folder,
             )
 
-    # ---------------------------------------------------------
+    # =====================================================
     # Download
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_download_section(self):
-        self.download_button = tk.Button(
+
+        frame = tk.Frame(
             self.root,
-            text="🎵 DOWNLOAD AUDIO",
+            bg=BG,
+        )
+
+        frame.pack(
+            pady=(20, 10),
+        )
+
+        self.download_button = tk.Button(
+            frame,
+            text="[ >>> YOINK AUDIO <<< ]",
             command=self.download,
-            width=25,
-            height=2,
+            font=("Consolas", 12, "bold"),
+            fg=AMBER,
+            bg=BG,
+            activeforeground=BG,
+            activebackground=AMBER,
+            disabledforeground=DISABLED,
+            relief="flat",
+            bd=0,
+            padx=20,
+            pady=8,
+            cursor="hand2",
             state="disabled",
         )
 
-        self.download_button.pack(
-            pady=15,
-        )
+        self.download_button.pack()
 
-    # ---------------------------------------------------------
+    # =====================================================
     # Status Bar
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _build_status_bar(self):
+
         self.status_bar = tk.Label(
             self.root,
-            text="Ready",
+            text="● READY",
+            font=FONT_BOLD,
+            fg=AMBER,
+            bg=BG,
             anchor="w",
-            relief="sunken",
-            bd=1,
-            padx=8,
+            padx=10,
+            pady=5,
         )
 
         self.status_bar.pack(
             side="bottom",
             fill="x",
+            padx=18,
+            pady=(0, 8),
+        )
+
+        tk.Frame(
+            self.root,
+            bg=BORDER,
+            height=1,
+        ).pack(
+            side="bottom",
+            fill="x",
+            padx=18,
         )
 
     def _set_status(self, text):
+
         self.status_bar.config(
-            text=text,
+            text=f"● {text.upper()}",
         )
 
-    # ---------------------------------------------------------
+    # =====================================================
     # URL Changes
-    # ---------------------------------------------------------
+    # =====================================================
 
     def _url_changed(self, event=None):
-        current_text = self.url_entry.get().strip()
+
+        current_text = (
+            self.url_entry.get().strip()
+        )
 
         if (
             self.current_url is not None
             and current_text != self.current_url
         ):
+
             self.current_url = None
             self.current_metadata = None
 
-            self.title_value.config(text="—")
-            self.channel_value.config(text="—")
-            self.filename_value.config(text="—")
+            self.title_value.config(
+                text="—"
+            )
+
+            self.channel_value.config(
+                text="—"
+            )
+
+            self.filename_value.config(
+                text="—"
+            )
 
             self.download_button.config(
                 state="disabled",
@@ -323,18 +525,21 @@ class YAAYApp:
                 "URL changed — click CHECK"
             )
 
-    # ---------------------------------------------------------
+    # =====================================================
     # Check
-    # ---------------------------------------------------------
+    # =====================================================
 
     def check_url(self):
+
         url = self.url_entry.get().strip()
 
         if not url:
+
             messagebox.showwarning(
                 "YAAY!",
                 "Paste a URL first.",
             )
+
             return
 
         self._set_status(
@@ -349,9 +554,17 @@ class YAAYApp:
             state="disabled",
         )
 
-        self.title_value.config(text="—")
-        self.channel_value.config(text="—")
-        self.filename_value.config(text="—")
+        self.title_value.config(
+            text="—"
+        )
+
+        self.channel_value.config(
+            text="—"
+        )
+
+        self.filename_value.config(
+            text="—"
+        )
 
         self.current_url = None
         self.current_metadata = None
@@ -359,7 +572,10 @@ class YAAYApp:
         self.root.update()
 
         try:
-            metadata = get_metadata(url)
+
+            metadata = get_metadata(
+                url
+            )
 
             self.current_url = url
             self.current_metadata = metadata
@@ -377,7 +593,7 @@ class YAAYApp:
             )
 
             self._set_status(
-                "✓ Ready to download"
+                "✓ READY TO DOWNLOAD"
             )
 
             self.download_button.config(
@@ -385,11 +601,12 @@ class YAAYApp:
             )
 
         except Exception as error:
+
             self.current_url = None
             self.current_metadata = None
 
             self._set_status(
-                "Could not retrieve information."
+                "ERROR — COULD NOT RETRIEVE INFORMATION"
             )
 
             messagebox.showerror(
@@ -398,32 +615,40 @@ class YAAYApp:
             )
 
         finally:
+
             self.check_button.config(
                 state="normal",
             )
 
-    # ---------------------------------------------------------
+    # =====================================================
     # Download
-    # ---------------------------------------------------------
+    # =====================================================
 
     def download(self):
+
         if (
             not self.current_url
             or not self.current_metadata
         ):
+
             messagebox.showwarning(
                 "YAAY!",
                 "Check a URL first.",
             )
+
             return
 
-        save_path = self.save_path_entry.get().strip()
+        save_path = (
+            self.save_path_entry.get().strip()
+        )
 
         if not save_path:
+
             messagebox.showwarning(
                 "YAAY!",
                 "Select a download folder first.",
             )
+
             return
 
         self._set_status(
@@ -441,14 +666,19 @@ class YAAYApp:
         self.root.update()
 
         try:
+
             download_audio(
                 self.current_url,
                 self.current_metadata,
-                Path(self.save_path_entry.get().strip())
+                Path(
+                    self.save_path_entry
+                    .get()
+                    .strip()
+                ),
             )
 
             self._set_status(
-                "✓ Download complete!"
+                "✓ DOWNLOAD COMPLETE"
             )
 
             play_success_sound()
@@ -461,13 +691,22 @@ class YAAYApp:
             self.current_url = None
             self.current_metadata = None
 
-            self.title_value.config(text="—")
-            self.channel_value.config(text="—")
-            self.filename_value.config(text="—")
+            self.title_value.config(
+                text="—"
+            )
+
+            self.channel_value.config(
+                text="—"
+            )
+
+            self.filename_value.config(
+                text="—"
+            )
 
         except Exception as error:
+
             self._set_status(
-                "Download failed."
+                "ERROR — DOWNLOAD FAILED"
             )
 
             messagebox.showerror(
@@ -476,6 +715,7 @@ class YAAYApp:
             )
 
         finally:
+
             self.check_button.config(
                 state="normal",
             )
@@ -489,7 +729,12 @@ class YAAYApp:
             )
 
 
+# =========================================================
+# START
+# =========================================================
+
 def start_app():
+
     ensure_directories()
 
     root = tk.Tk()

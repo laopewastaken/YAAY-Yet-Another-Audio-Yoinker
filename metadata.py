@@ -1,5 +1,7 @@
+
 import json
 import subprocess
+import time
 
 from filenames import get_filename, limit_title
 from utils import APP_DIR, YTDLP
@@ -37,13 +39,19 @@ def get_metadata(url):
         url,
     ]
 
-    # TikTok extraction can intermittently fail even when the exact
-    # same URL and command work on the next attempt. Retry only the
-    # two known transient webpage/extraction errors.
-    max_attempts = 3 if "tiktok.com" in url.lower() else 1
+    # TikTok extraction can intermittently fail even when the
+    # exact same URL and command work on the next attempt.
+    #
+    # We retry known transient TikTok webpage/extraction errors
+    # silently before giving the error to the user.
+    is_tiktok = "tiktok.com" in url.lower()
+
+    max_attempts = 3 if is_tiktok else 1
+
     last_error = ""
 
     for attempt in range(1, max_attempts + 1):
+
         result = subprocess.run(
             command,
             cwd=APP_DIR,
@@ -54,22 +62,47 @@ def get_metadata(url):
         if result.returncode == 0:
             break
 
-        last_error = result.stderr.strip() or "Unknown yt-dlp error."
+        stderr = result.stderr.strip()
+        stdout = result.stdout.strip()
+
+        last_error = stderr or stdout or "Unknown yt-dlp error."
 
         retryable = (
-            "Unable to extract universal data for rehydration" in last_error
-            or "Unexpected response from webpage request" in last_error
+            "Unable to extract universal data for rehydration"
+            in last_error
+            or
+            "Unexpected response from webpage request"
+            in last_error
         )
 
-        if not retryable or attempt >= max_attempts:
-            raise RuntimeError(last_error[-3000:])
+        # Non-TikTok errors, or errors that we don't know how
+        # to recover from, are shown immediately.
+        if not is_tiktok or not retryable:
+            raise RuntimeError(
+                last_error[-3000:]
+            )
+
+        # We've exhausted the silent retries.
+        if attempt >= max_attempts:
+            raise RuntimeError(
+                last_error[-3000:]
+            )
+
+        # Give TikTok a moment before trying the same request again.
+        time.sleep(1)
 
     else:
-        raise RuntimeError(last_error[-3000:])
+        raise RuntimeError(
+            last_error[-3000:]
+        )
 
     try:
-        info = json.loads(result.stdout)
+        info = json.loads(
+            result.stdout
+        )
+
     except json.JSONDecodeError as error:
+
         raise ValueError(
             "yt-dlp returned information that YAAY couldn't understand."
         ) from error
@@ -81,15 +114,23 @@ def get_metadata(url):
     ).lower()
 
     if "instagram" in extractor:
+
         title = (
             info.get("description")
             or info.get("title")
             or "Unknown"
         )
-    else:
-        title = info.get("title") or "Unknown"
 
-    title = limit_title(title)
+    else:
+
+        title = (
+            info.get("title")
+            or "Unknown"
+        )
+
+    title = limit_title(
+        title
+    )
 
     channel = (
         info.get("uploader")
@@ -98,9 +139,15 @@ def get_metadata(url):
         or "Unknown"
     )
 
-    media_id = info.get("id") or "Unknown"
+    media_id = (
+        info.get("id")
+        or "Unknown"
+    )
 
-    formats = info.get("formats") or []
+    formats = (
+        info.get("formats")
+        or []
+    )
 
     audio_formats = [
         fmt
@@ -110,9 +157,17 @@ def get_metadata(url):
     ]
 
     if audio_formats:
-        extension = audio_formats[-1].get("ext")
+
+        extension = audio_formats[-1].get(
+            "ext"
+        )
+
     else:
-        extension = info.get("ext") or "audio"
+
+        extension = (
+            info.get("ext")
+            or "audio"
+        )
 
     filename = get_filename(
         title,
