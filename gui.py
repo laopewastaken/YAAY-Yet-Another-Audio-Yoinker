@@ -5,7 +5,7 @@ from pathlib import Path
 
 from downloader import download_audio
 from metadata import get_metadata
-from utils import ensure_directories, play_success_sound
+from utils import ensure_directories, play_success_sound, APP_DIR
 
 
 # =========================================================
@@ -85,7 +85,7 @@ class YAAYApp:
 
         tk.Label(
             header,
-            text="║  YAAY! // YET ANOTHER AUDIO YOINKER                               ║",
+            text="║  YAAY! // YET ANOTHER AUDIO YOINKER                                  ║",
             font=FONT_BOLD,
             fg=AMBER,
             bg=BG,
@@ -93,7 +93,7 @@ class YAAYApp:
 
         tk.Label(
             header,
-            text="║  AUDIO EXTRACTION TERMINAL                                        ║",
+            text="║  AUDIO EXTRACTION TERMINAL                                           ║",
             font=FONT_SMALL,
             fg=AMBER_DIM,
             bg=BG,
@@ -110,6 +110,45 @@ class YAAYApp:
     # =====================================================
     # URL
     # =====================================================
+    def _show_url_context_menu(self, event):
+        menu = tk.Menu(
+            self.root,
+            tearoff=0,
+            bg=PANEL,
+            fg=AMBER,
+            activebackground=AMBER,
+            activeforeground=BG,
+            bd=0,
+            relief="flat",
+        )
+
+        menu.add_command(
+            label="Cut",
+            command=lambda: event.widget.event_generate("<<Cut>>"),
+        )
+
+        menu.add_command(
+            label="Copy",
+            command=lambda: event.widget.event_generate("<<Copy>>"),
+        )
+
+        menu.add_command(
+            label="Paste",
+            command=lambda: event.widget.event_generate("<<Paste>>"),
+        )
+
+        menu.add_separator()
+
+        menu.add_command(
+            label="Select All",
+            command=lambda: event.widget.event_generate("<<SelectAll>>"),
+        )
+
+        menu.tk_popup(
+            event.x_root,
+            event.y_root,
+        )
+
 
     def _build_url_section(self):
 
@@ -128,7 +167,7 @@ class YAAYApp:
             frame,
             text="[ SOURCE URL ]",
             font=FONT_BOLD,
-            fg=AMBER,
+            fg=AMBER_DIM,
             bg=BG,
             anchor="w",
         ).pack(
@@ -153,6 +192,11 @@ class YAAYApp:
             fill="x",
             pady=(5, 8),
             ipady=6,
+        )
+
+        self.url_entry.bind(
+        "<Button-3>",
+        self._show_url_context_menu,
         )
 
         self.url_entry.bind(
@@ -323,7 +367,7 @@ class YAAYApp:
             frame,
             text="[ SAVE TO ]",
             font=FONT_BOLD,
-            fg=AMBER,
+            fg=AMBER_DIM,
             bg=BG,
             anchor="w",
         ).pack(
@@ -363,10 +407,7 @@ class YAAYApp:
 
         ensure_directories()
 
-        default_download_folder = (
-            Path(__file__).resolve().parent
-            / "downloads"
-        )
+        default_download_folder = APP_DIR / "downloads"
 
         self.save_path_entry.insert(
             0,

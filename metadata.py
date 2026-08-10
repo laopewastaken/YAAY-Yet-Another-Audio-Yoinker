@@ -7,6 +7,30 @@ from filenames import get_filename, limit_title
 from utils import APP_DIR, YTDLP
 
 
+def _format_extraction_error(error, url):
+    """
+    Convert raw yt-dlp errors into user-friendly YAAY messages.
+    """
+
+    if "tiktok.com" in url.lower():
+        if (
+            "Unexpected response from webpage request"
+            in error
+            or
+            "_solve_challenge_and_set_cookies"
+            in error
+        ):
+            return (
+                "YAAY couldn't retrieve this TikTok.\n\n"
+                "TikTok is currently preventing YAAY "
+                "from retrieving this video.\n\n"
+                "This isn't a problem with your URL or YAAY. "
+                "Try again later :)."
+            )
+
+    return error[-3000:]
+
+
 def get_metadata(url):
     """
     Ask yt-dlp for metadata without downloading media.
@@ -57,6 +81,7 @@ def get_metadata(url):
             cwd=APP_DIR,
             capture_output=True,
             text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
 
         if result.returncode == 0:
@@ -79,13 +104,13 @@ def get_metadata(url):
         # to recover from, are shown immediately.
         if not is_tiktok or not retryable:
             raise RuntimeError(
-                last_error[-3000:]
+             _format_extraction_error(last_error, url)
             )
 
         # We've exhausted the silent retries.
         if attempt >= max_attempts:
             raise RuntimeError(
-                last_error[-3000:]
+                _format_extraction_error(last_error, url)
             )
 
         # Give TikTok a moment before trying the same request again.

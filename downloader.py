@@ -13,7 +13,8 @@ from utils import (
 
 def _run(command):
     """
-    Run a subprocess inside YAAY's application directory.
+    Run a subprocess inside YAAY's application directory
+    without opening a console window.
     """
 
     return subprocess.run(
@@ -21,6 +22,7 @@ def _run(command):
         cwd=APP_DIR,
         capture_output=True,
         text=True,
+        creationflags=subprocess.CREATE_NO_WINDOW,
     )
 
 

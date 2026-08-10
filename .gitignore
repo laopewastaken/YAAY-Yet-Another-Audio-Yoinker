@@ -3,6 +3,8 @@ ffprobe.exe
 yt-dlp.exe
 imgstemp/
 __pycache__/
+build/
+dist/
 *.m4a
 *.opus
 *.mp3
@@ -15,4 +17,6 @@ __pycache__/
 *.avi
 *.mov
 *.webm
+*.zip
 tiktok.json
+YAAY.spec
