@@ -58,71 +58,49 @@ class YAAYApp:
             bg=BG
         )
 
+ # =====================================================
+    # Header (The Main Banner)
     # =====================================================
-    # Header
-    # =====================================================
-
     def _build_header(self):
+        header = tk.Frame(self.root, bg=BG)
+        header.pack(fill="x", padx=20, pady=(15, 10))
 
-        header = tk.Frame(
-            self.root,
-            bg=BG,
-        )
-
-        header.pack(
-            fill="x",
-            padx=18,
-            pady=(15, 0),
-        )
-
+        # Use a more distinct 'terminal box' look
         tk.Label(
             header,
-            text="╔══════════════════════════════════════════════════════════════════════╗",
+            text="╔════════════════════════════════════════════════════════════════════╗",
             font=FONT_SMALL,
             fg=AMBER_DIM,
             bg=BG,
         ).pack()
-
         tk.Label(
             header,
-            text="║  YAAY! // YET ANOTHER AUDIO YOINKER                               ║",
+            text="║  YAAY! // YET ANOTHER AUDIO YOINKER                                ║",
             font=FONT_BOLD,
             fg=AMBER,
             bg=BG,
         ).pack()
-
         tk.Label(
             header,
-            text="║  AUDIO EXTRACTION TERMINAL                                        ║",
+            text="║  AUDIO EXTRACTION TERMINAL                                         ║",
             font=FONT_SMALL,
             fg=AMBER_DIM,
             bg=BG,
         ).pack()
-
         tk.Label(
             header,
-            text="╚══════════════════════════════════════════════════════════════════════╝",
+            text="╚════════════════════════════════════════════════════════════════════╝",
             font=FONT_SMALL,
             fg=AMBER_DIM,
             bg=BG,
         ).pack()
 
     # =====================================================
-    # URL
+    # URL Section
     # =====================================================
-
     def _build_url_section(self):
-
-        frame = tk.Frame(
-            self.root,
-            bg=BG,
-        )
-
-        frame.pack(
-            fill="x",
-            padx=28,
-            pady=(18, 0),
-        )
+        frame = tk.Frame(self.root, bg=BG)
+        frame.pack(fill="x", padx=28, pady=(15, 10))
 
         tk.Label(
             frame,
@@ -130,10 +108,7 @@ class YAAYApp:
             font=FONT_BOLD,
             fg=AMBER,
             bg=BG,
-            anchor="w",
-        ).pack(
-            anchor="w",
-        )
+        ).pack(anchor="w")
 
         self.url_entry = tk.Entry(
             frame,
@@ -141,24 +116,13 @@ class YAAYApp:
             fg=AMBER,
             bg=PANEL,
             insertbackground=AMBER,
-            selectforeground=BG,
-            selectbackground=AMBER,
             relief="flat",
             highlightthickness=1,
             highlightbackground=BORDER,
-            highlightcolor=AMBER,
         )
+        self.url_entry.pack(fill="x", pady=(5, 8), ipady=7)
 
-        self.url_entry.pack(
-            fill="x",
-            pady=(5, 8),
-            ipady=6,
-        )
-
-        self.url_entry.bind(
-            "<KeyRelease>",
-            self._url_changed,
-        )
+        self.url_entry.bind("<KeyRelease>", self._url_changed)
 
         self.check_button = tk.Button(
             frame,
@@ -167,94 +131,46 @@ class YAAYApp:
             font=FONT_BOLD,
             fg=AMBER,
             bg=BG,
-            activeforeground=BG,
-            activebackground=AMBER,
+            activebackground=BORDER,
             relief="flat",
             bd=0,
-            padx=12,
+            padx=15,
             pady=5,
-            cursor="hand2",
+            cursor="hand2"
         )
-
-        self.check_button.pack(
-            anchor="e",
-        )
+        self.check_button.pack(anchor="e")
 
     # =====================================================
-    # Information
+    # Information Section
     # =====================================================
-
     def _build_information_section(self):
-
-        outer = tk.Frame(
-            self.root,
-            bg=BG,
-        )
-
-        outer.pack(
-            fill="x",
-            padx=28,
-            pady=(15, 0),
-        )
+        outer = tk.Frame(self.root, bg=BG)
+        outer.pack(fill="x", padx=28, pady=(15, 10))
 
         tk.Label(
             outer,
-            text="┌─ SOURCE INFORMATION ───────────────────────────────────────────────┐",
+            text="┌─ SOURCE INFORMATION ────────────────────────────────-------------------┐",
             font=FONT_SMALL,
             fg=AMBER_DIM,
             bg=BG,
-            anchor="w",
-        ).pack(
-            fill="x",
-        )
+        ).pack(fill="x")
 
-        info_frame = tk.Frame(
-            outer,
-            bg=PANEL,
-            highlightthickness=1,
-            highlightbackground=BORDER,
-        )
+        info_frame = tk.Frame(outer, bg=PANEL, highlightthickness=1, highlightbackground=BORDER)
+        info_frame.pack(fill="x")
 
-        info_frame.pack(
-            fill="x",
-        )
-
-        self._create_info_row(
-            info_frame,
-            "TITLE",
-            0,
-        )
-
-        self._create_info_row(
-            info_frame,
-            "CHANNEL",
-            1,
-        )
-
-        self._create_info_row(
-            info_frame,
-            "OUTPUT",
-            2,
-        )
+        self._create_info_row(info_frame, "TITLE", 0)
+        self._create_info_row(info_frame, "CHANNEL", 1)
+        self._create_info_row(info_frame, "OUTPUT", 2)
 
         tk.Label(
             outer,
-            text="└────────────────────────────────────────────────────────────────────┘",
+            text="└────────────────────────────────────────────────────────────────-----------┘",
             font=FONT_SMALL,
             fg=AMBER_DIM,
             bg=BG,
-            anchor="w",
-        ).pack(
-            fill="x",
-        )
+        ).pack(fill="x")
 
-    def _create_info_row(
-        self,
-        parent,
-        label,
-        row,
-    ):
-
+    def _create_info_row(self, parent, label, row):
         tk.Label(
             parent,
             text=f" {label:<8}:",
@@ -263,61 +179,31 @@ class YAAYApp:
             bg=PANEL,
             anchor="w",
             width=12,
-        ).grid(
-            row=row,
-            column=0,
-            sticky="w",
-            padx=(5, 0),
-            pady=5,
-        )
+        ).grid(row=row, column=0, sticky="w", padx=(5, 0), pady=5)
 
         value = tk.Label(
             parent,
-            text="—",
+            text="---",
             font=FONT,
             fg=AMBER,
             bg=PANEL,
-            anchor="w",
+            anchor="w"
         )
-
-        value.grid(
-            row=row,
-            column=1,
-            sticky="ew",
-            padx=5,
-            pady=5,
-        )
-
-        parent.grid_columnconfigure(
-            1,
-            weight=1,
-        )
+        value.grid(row=row, column=1, sticky="ew", padx=5, pady=5)
+        parent.grid_columnconfigure(1, weight=1)
 
         if label == "TITLE":
             self.title_value = value
-
         elif label == "CHANNEL":
             self.channel_value = value
-
         elif label == "OUTPUT":
             self.filename_value = value
-
-    # =====================================================
+# =====================================================
     # Save To
     # =====================================================
-
     def _build_save_section(self):
-
-        frame = tk.Frame(
-            self.root,
-            bg=BG,
-        )
-
-        frame.pack(
-            fill="x",
-            padx=28,
-            pady=(15, 0),
-        )
+        frame = tk.Frame(self.root, bg=BG)
+        frame.pack(fill="x", padx=28, pady=(15, 0))
 
         tk.Label(
             frame,
@@ -325,20 +211,10 @@ class YAAYApp:
             font=FONT_BOLD,
             fg=AMBER,
             bg=BG,
-            anchor="w",
-        ).pack(
-            anchor="w",
-        )
+        ).pack(anchor="w")
 
-        path_frame = tk.Frame(
-            frame,
-            bg=BG,
-        )
-
-        path_frame.pack(
-            fill="x",
-            pady=(5, 0),
-        )
+        path_frame = tk.Frame(frame, bg=BG)
+        path_frame.pack(fill="x", pady=(5, 0))
 
         self.save_path_entry = tk.Entry(
             path_frame,
@@ -346,32 +222,15 @@ class YAAYApp:
             fg=AMBER,
             bg=PANEL,
             insertbackground=AMBER,
-            selectforeground=BG,
-            selectbackground=AMBER,
             relief="flat",
             highlightthickness=1,
             highlightbackground=BORDER,
-            highlightcolor=AMBER,
         )
-
-        self.save_path_entry.pack(
-            side="left",
-            fill="x",
-            expand=True,
-            ipady=6,
-        )
+        self.save_path_entry.pack(side="left", fill="x", expand=True, ipady=6)
 
         ensure_directories()
-
-        default_download_folder = (
-            Path(__file__).resolve().parent
-            / "downloads"
-        )
-
-        self.save_path_entry.insert(
-            0,
-            str(default_download_folder),
-        )
+        default_folder = str(Path(__file__).resolve().parent / "downloads")
+        self.save_path_entry.insert(0, default_folder)
 
         self.browse_button = tk.Button(
             path_frame,
@@ -380,79 +239,52 @@ class YAAYApp:
             font=FONT_BOLD,
             fg=AMBER,
             bg=BG,
-            activeforeground=BG,
-            activebackground=AMBER,
+            activebackground=BORDER,
             relief="flat",
             bd=0,
             padx=10,
             pady=4,
-            cursor="hand2",
+            cursor="hand2"
         )
-
-        self.browse_button.pack(
-            side="left",
-            padx=(8, 0),
-        )
+        self.browse_button.pack(side="left", padx=(8, 0))
 
     def browse_save_folder(self):
-
-        selected_folder = filedialog.askdirectory(
-            title="Select YAAY download folder",
-        )
-
-        if selected_folder:
-
-            self.save_path_entry.delete(
-                0,
-                tk.END,
-            )
-
-            self.save_path_entry.insert(
-                0,
-                selected_folder,
-            )
+        selected = filedialog.askdirectory(title="Select YAAY download folder")
+        if selected:
+            self.save_path_entry.delete(0, tk.END)
+            self.save_path_entry.insert(0, selected)
 
     # =====================================================
-    # Download
+    # Download Button & Action Area
     # =====================================================
-
     def _build_download_section(self):
+        frame = tk.Frame(self.root, bg=BG)
+        frame.pack(pady=(20, 15))
 
-        frame = tk.Frame(
-            self.root,
-            bg=BG,
-        )
-
-        frame.pack(
-            pady=(20, 10),
-        )
-
+        # The primary interactable button is larger to stand out as the 'main quest' of the terminal.
         self.download_button = tk.Button(
             frame,
             text="[ >>> YOINK AUDIO <<< ]",
             command=self.download,
-            font=("Consolas", 12, "bold"),
+            font=("Consol", 14, "bold"), # Keep standard console font but high weight
             fg=AMBER,
             bg=BG,
-            activeforeground=BG,
-            activebackground=AMBER,
+            activeforeground="#0a0a00",
+            activebackground=BORDER,
             disabledforeground=DISABLED,
             relief="flat",
             bd=0,
-            padx=20,
-            pady=8,
+            padx=30,
+            pady=12,
             cursor="hand2",
-            state="disabled",
+            state="disabled"
         )
-
         self.download_button.pack()
 
     # =====================================================
-    # Status Bar
+    # Status Bar (The "Terminal Heartbeat")
     # =====================================================
-
     def _build_status_bar(self):
-
         self.status_bar = tk.Label(
             self.root,
             text="● READY",
@@ -463,29 +295,14 @@ class YAAYApp:
             padx=10,
             pady=5,
         )
+        self.status_bar.pack(side="bottom", fill="x", padx=20, pady=(0, 8))
 
-        self.status_bar.pack(
-            side="bottom",
-            fill="x",
-            padx=18,
-            pady=(0, 8),
-        )
-
+        # A consistent bottom border to 'enclose' the terminal window
         tk.Frame(
             self.root,
             bg=BORDER,
-            height=1,
-        ).pack(
-            side="bottom",
-            fill="x",
-            padx=18,
-        )
-
-    def _set_status(self, text):
-
-        self.status_bar.config(
-            text=f"● {text.upper()}",
-        )
+            height=1
+        ).pack(side="bottom", fill="x", padx=20, pady=(0, 5))
 
     # =====================================================
     # URL Changes
